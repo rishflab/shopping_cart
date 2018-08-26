@@ -4,25 +4,25 @@ import "fmt"
 
 type AddItem struct {
 	itemType  string
-	quantity  uint32
+	quantity  uint
 	timestamp int
 }
 
 type RemoveItem struct {
 	itemType  string
-	quantity  uint32
+	quantity  uint
 	timestamp int
 }
 
 type ItemAdded struct {
 	itemType  string
-	quantity  uint32
+	quantity  uint
 	timestamp int
 }
 
 type ItemRemoved struct {
 	itemType  string
-	quantity  uint32
+	quantity  uint
 	timestamp int
 }
 
@@ -40,7 +40,7 @@ func (cart *Cart) CheckoutPrice() float64 {
 	if cart.items["trousers"] == 2 {
 		return 1.0
 	} else {
-		return 2.0
+		return 2.
 	}
 
 }
@@ -55,9 +55,9 @@ type EventStore struct {
 	itemRemovedEvents []ItemRemoved
 }
 
-func (events *EventStore) numberOfAnItemTypeInCart(itemType string) int {
+func (events *EventStore) numberOfAnItemTypeInCart(itemType string) uint {
 
-	count := 0
+	var count uint = 0
 
 	for _, itemAdded := range events.itemAddedEvents {
 		if itemAdded.itemType == itemType {
@@ -72,10 +72,30 @@ func (events *EventStore) numberOfAnItemTypeInCart(itemType string) int {
 	}
 
 	return count
-
 }
 
-func (events *EventStore) AddItemToCart()
+func (events *EventStore) AddItemToCart(addItem ItemAdded) {
+
+	events.itemAddedEvents = append(events.itemAddedEvents, addItem)
+}
+
+func (events *EventStore) RemoveItemFromCart(removeItem ItemRemoved) {
+
+	if removeItem.quantity >= events.numberOfAnItemTypeInCart(removeItem.itemType) {
+
+		events.itemRemovedEvents = append(events.itemRemovedEvents, removeItem)
+
+	}
+}
+
+func (events *EventStore) ViewCart(removeItem ItemRemoved) Cart {
+
+	Car
+	for _, itemAdded := range events.itemAddedEvents {
+
+	}
+
+}
 
 func main() {
 
