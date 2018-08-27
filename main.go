@@ -5,31 +5,25 @@ import (
 )
 
 type addItem struct {
-	itemType  string
-	quantity  uint
-	timestamp int
+	itemType string
+	quantity uint
 }
 
-type pricesUpdated struct {
-	priceList map[string]float64
-}
+type inventoryUpdated struct{}
 
 type removeItem struct {
-	itemType  string
-	quantity  uint
-	timestamp int
+	itemType string
+	quantity uint
 }
 
 type itemAdded struct {
-	itemType  string
-	quantity  uint
-	timestamp int
+	itemType string
+	quantity uint
 }
 
 type itemRemoved struct {
-	itemType  string
-	quantity  uint
-	timestamp int
+	itemType string
+	quantity uint
 }
 
 type cartItem struct {
@@ -41,25 +35,70 @@ type cart struct {
 	items map[string]cartItem
 }
 
-// func (cart *Cart) CheckoutPrice() float64 {
+type inventory struct {
+	items map[string]uint
+}
 
-// 	if cart.items["trousers"] == 2 {
-// 		return 1.0
-// 	} else {
-// 		return 2.
-// 	}
+type pricesUpdated struct {
+	priceList map[string]float64
+}
 
-// }
+func (cart *cart) CheckoutPrice() float64 {
 
-func (cart cart) filterByItemName(itemName string) {
-	m := len(cart.items)
-	fmt.Printf("%d", m)
+	total := 0.0
+
+	for k, v := range cart.items {
+
+		switch k {
+
+		case "belts":
+
+			if cart.items["trousers"].quantity >= 2 {
+				total = total + v.price*0.85*float64(v.quantity)
+			} else {
+				total = total + v.price*float64(v.quantity)
+			}
+
+		case "shoes":
+
+			if cart.items["trousers"].quantity >= 2 {
+				total = total + v.price*0.85*float64(v.quantity)
+			} else {
+				total = total + v.price*float64(v.quantity)
+			}
+
+		case "shirts":
+
+			if cart.items["shirts"].quantity >= 2 {
+				total = total + v.price*2.0 + 45.0*float64(v.quantity-2)
+			} else {
+				total = total + v.price*float64(v.quantity)
+
+			}
+
+		case "ties":
+
+			if cart.items["shirts"].quantity >= 3 {
+				total = total + v.price*0.5*float64(v.quantity)
+			} else {
+				total = total + v.price*float64(v.quantity)
+
+			}
+
+		default:
+			total = total + v.price*float64(v.quantity)
+
+		}
+	}
+
+	return total
 }
 
 type eventStore struct {
-	itemAdded     []itemAdded
-	itemRemoved   []itemRemoved
-	pricesUpdated []pricesUpdated
+	itemAdded        []itemAdded
+	itemRemoved      []itemRemoved
+	pricesUpdated    []pricesUpdated
+	inventorySet []inventorySet
 }
 
 func (events *eventStore) quantityOfItem(itemType string) uint {
@@ -80,6 +119,8 @@ func (events *eventStore) addItem(addItem itemAdded) (bool, error) {
 	if err != nil {
 		return false, err
 	}
+
+	if events.quantityOfItem("add")
 
 	events.itemAdded = append(events.itemAdded, addItem)
 	return true, err
@@ -156,36 +197,49 @@ func (events *eventStore) buildCart() cart {
 	return c
 }
 
+func initEventStore() eventStore {
+
+	events := eventStore{itemAdded: []itemAdded{}, itemRemoved: []itemRemoved{}, pricesUpdated: []pricesUpdated{}}
+	events.updatePrices(pricesUpdated{map[string]float64{"belts": 20.0, "shirts": 60.0, "suits": 300.0, "trousers": 70.0, "shoes": 120.0, "ties": 20.0}})
+	events.addItem(itemAdded{"belts", 10})
+	events.addItem(itemAdded{"shirts", 5})
+	events.addItem(itemAdded{"suits", 2})
+	events.addItem(itemAdded{"trousers", 4})
+	events.addItem(itemAdded{"shoes", 1})
+	events.addItem(itemAdded{"ties", 8})
+	return events
+}
+
 func main() {
 
-	a := []itemAdded{}
+	// a := []itemAdded{}
 
-	p := pricesUpdated{map[string]float64{"trousers": 20.0, "shirts": 10.0}}
+	// p := pricesUpdated{map[string]float64{"trousers": 20.0, "shirts": 10.0}}
 
-	i := itemAdded{"shirts", 1, 109201929}
+	// i := itemAdded{"shirts", 1}
 
-	b := itemAdded{"trousers", 1, 109400100}
+	// b := itemAdded{"trousers", 1}
 
-	// f := itemRemoved{"trousers", 1, 102919293}
+	// // f := itemRemoved{"trousers", 1}
 
-	// g := itemRemoved{"trousers", 1, 102919293}
+	// // g := itemRemoved{"trousers", 1}
 
-	a = append(a, i)
+	// a = append(a, i)
 
-	//fmt.Println(a)
+	// //fmt.Println(a)
 
-	events := eventStore{itemAdded: []itemAdded{}, itemRemoved: []itemRemoved{}}
+	// events := eventStore{itemAdded: []itemAdded{}, itemRemoved: []itemRemoved{}}
 
-	events.updatePrices(p)
-	//fmt.Println(events.buildCart())
-	events.addItem(i)
-	events.addItem(b)
-	// events.removeItem(f)
-	// events.removeItem(g)
-	fmt.Println(events.quantityOfItem("shirts"))
-	//fmt.Println(events.buildCart())
-	fmt.Println(events)
-
+	// events.updatePrices(p)
+	// //fmt.Println(events.buildCart())
+	// events.addItem(i)
+	// events.addItem(b)
+	// // events.removeItem(f)
+	// // events.removeItem(g)
+	// fmt.Println(events.quantityOfItem("shirts"))
+	// //fmt.Println(events.buildCart())
+	// fmt.Println(events)
+	events := initEventStore()
 	fmt.Println(events.buildCart())
 	//fmt.Println(events.buildCart())
 
