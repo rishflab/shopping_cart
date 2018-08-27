@@ -1,42 +1,44 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+)
 
-type AddItem struct {
+type addItem struct {
 	itemType  string
 	quantity  uint
 	timestamp int
 }
 
-type PricesUpdated struct {
+type pricesUpdated struct {
 	priceList map[string]float64
 }
 
-type RemoveItem struct {
+type removeItem struct {
 	itemType  string
 	quantity  uint
 	timestamp int
 }
 
-type ItemAdded struct {
+type itemAdded struct {
 	itemType  string
 	quantity  uint
 	timestamp int
 }
 
-type ItemRemoved struct {
+type itemRemoved struct {
 	itemType  string
 	quantity  uint
 	timestamp int
 }
 
-type CartItem struct {
+type cartItem struct {
 	quantity uint
-	price    uint
+	price    float64
 }
 
-type Cart struct {
-	items map[string]CartItem
+type cart struct {
+	items map[string]cartItem
 }
 
 // func (cart *Cart) CheckoutPrice() float64 {
@@ -49,123 +51,142 @@ type Cart struct {
 
 // }
 
-func (cart Cart) filterByItemName(itemName string) {
+func (cart cart) filterByItemName(itemName string) {
 	m := len(cart.items)
 	fmt.Printf("%d", m)
 }
 
-type EventStore struct {
-	itemAdded     []ItemAdded
-	itemRemoved   []ItemRemoved
-	pricesUpdated []PricesUpdated
+type eventStore struct {
+	itemAdded     []itemAdded
+	itemRemoved   []itemRemoved
+	pricesUpdated []pricesUpdated
 }
 
-func (events *EventStore) numberOfAnItemTypeInCart(itemType string) uint {
+func (events *eventStore) quantityOfItem(itemType string) uint {
 
-	var count uint = 0
+	return events.buildCart().items[itemType].quantity
+}
+
+func (events *eventStore) updatePrices(updatePrices pricesUpdated) {
+
+	events.pricesUpdated = append(events.pricesUpdated, updatePrices)
+
+}
+
+func (events *eventStore) addItem(addItem itemAdded) (bool, error) {
+
+	_, err := events.priceOfItem(addItem.itemType)
+
+	if err != nil {
+		return false, err
+	}
+
+	events.itemAdded = append(events.itemAdded, addItem)
+	return true, err
+
+}
+
+func (events *eventStore) removeItem(removeItem itemRemoved) {
+
+	if removeItem.quantity <= events.quantityOfItem(removeItem.itemType) {
+		events.itemRemoved = append(events.itemRemoved, removeItem)
+	}
+}
+
+type priceNotFoundError struct {
+	itemType string
+}
+
+func (e *priceNotFoundError) Error() string {
+	return fmt.Sprintf("No price for %s", e.itemType)
+}
+
+func (events *eventStore) priceOfItem(itemType string) (float64, error) {
+
+	if (len(events.pricesUpdated)) < 1 {
+		return -1.0, &priceNotFoundError{itemType}
+	}
+	currentPrices := events.pricesUpdated[len(events.pricesUpdated)-1]
+	price, exists := currentPrices.priceList[itemType]
+
+	if exists == false {
+		return -1.0, &priceNotFoundError{itemType}
+	}
+
+	return price, nil
+
+}
+
+func (events *eventStore) buildCart() cart {
+
+	c := cart{make(map[string]cartItem)}
 
 	for _, itemAdded := range events.itemAdded {
-		if itemAdded.itemType == itemType {
-			count++
-		}
-	}
 
-	for _, ItemRemoved := range events.itemRemoved {
-		if ItemRemoved.itemType == itemType {
-			count--
-		}
-	}
+		price, _ := events.priceOfItem(itemAdded.itemType)
 
-	return count
-}
-
-func (events *EventStore) SetPrices(updatePrices PricesUpdated) {
-
-	events.setPricesEvents = append(events.updatePrices, updatePriceList)
-
-}
-
-func (events *EventStore) AddItem(addItem ItemAdded) {
-
-	events.itemAddedEvents = append(events.itemAdded, addItem)
-}
-
-func (events *EventStore) RemoveItem(removeItem ItemRemoved) {
-
-	if removeItem.quantity >= events.numberOfAnItemTypeInCart(removeItem.itemType) {
-
-		events.itemRemovedEvents = append(events.itemRemoved, removeItem)
-
-	}
-}
-
-func (events *EventStore) PriceOfItem(itemType string) {
-
-	currentPrices := events.updatePriceListEvents[len(events.updatePriceListEvents-1)]
-	return currentPrices[itemType]
-
-}
-
-func (events *EventStore) BuildCart() map[string]CartItem {
-
-	cart := make(map[string]CartItem)
-
-	for _, itemAdded := range events.itemAddedEvents {
-
-		cartItem, exists := cart[itemAdded.itemType]
+		item, exists := c.items[itemAdded.itemType]
 
 		if exists == true {
-			cartItem = CartItem{quantity: cartItem.quantity + itemAdded.quantity, price: events.PriceOfItem(itemAdded.itemType)}
+			item = cartItem{quantity: item.quantity + itemAdded.quantity, price: price}
 		} else {
-			cartItem = CartItem{quantity: itemAdded.quantity, price: events.PriceOfItem(itemAdded.itemType)}
+			item = cartItem{quantity: itemAdded.quantity, price: price}
 		}
 
-		cart[itemAdded.itemType] = cartItem
+		c.items[itemAdded.itemType] = item
 
 	}
 
-	for _, itemRemoved := range events.itemRemovedEvents {
+	for _, itemRemoved := range events.itemRemoved {
 
-		cartItem, exists := cart[itemRemoved.itemType]
+		item, exists := c.items[itemRemoved.itemType]
 
 		if exists == true {
-			if cartItem.quantity-itemRemoved.quantity == 0 {
-				delete(cart, itemRemoved.itemType)
+			if item.quantity-itemRemoved.quantity == 0 {
+				delete(c.items, itemRemoved.itemType)
 			} else {
-				cartItem = CartItem{quantity: cartItem.quantity - itemRemoved.quantity, price: 20.0}
-				cart[itemRemoved.itemType] = cartItem
+				price, _ := events.priceOfItem(itemRemoved.itemType)
+				item = cartItem{quantity: item.quantity - itemRemoved.quantity, price: price}
+				c.items[itemRemoved.itemType] = item
 			}
 		}
 
 	}
 
-	return cart
-
+	return c
 }
 
 func main() {
 
-	a := []ItemAdded{}
+	a := []itemAdded{}
 
-	i := ItemAdded{"director", 1, 109201929}
+	p := pricesUpdated{map[string]float64{"trousers": 20.0, "shirts": 10.0}}
 
-	b := ItemAdded{"bond", 1, 109400100}
+	i := itemAdded{"shirts", 1, 109201929}
 
-	f := ItemRemoved{"bond", 1, 102919293}
+	b := itemAdded{"trousers", 1, 109400100}
 
-	g := ItemRemoved{"bond", 1, 102919293}
+	// f := itemRemoved{"trousers", 1, 102919293}
+
+	// g := itemRemoved{"trousers", 1, 102919293}
 
 	a = append(a, i)
 
-	fmt.Println(a)
+	//fmt.Println(a)
 
-	events := EventStore{itemAddedEvents: []ItemAdded{}, itemRemovedEvents: []ItemRemoved{}}
+	events := eventStore{itemAdded: []itemAdded{}, itemRemoved: []itemRemoved{}}
 
-	events.AddItem(i)
-	events.AddItem(b)
-	events.RemoveItem(f)
-	events.RemoveItem(g)
+	events.updatePrices(p)
+	//fmt.Println(events.buildCart())
+	events.addItem(i)
+	events.addItem(b)
+	// events.removeItem(f)
+	// events.removeItem(g)
+	fmt.Println(events.quantityOfItem("shirts"))
+	//fmt.Println(events.buildCart())
 	fmt.Println(events)
-	fmt.Println(events.BuildCart())
+
+	fmt.Println(events.buildCart())
+	//fmt.Println(events.buildCart())
 
 }
