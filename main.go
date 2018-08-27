@@ -98,7 +98,7 @@ type eventStore struct {
 	itemAdded        []itemAdded
 	itemRemoved      []itemRemoved
 	pricesUpdated    []pricesUpdated
-	inventorySet []inventorySet
+	initialInventory inventory
 }
 
 func (events *eventStore) quantityOfItem(itemType string) uint {
@@ -120,7 +120,7 @@ func (events *eventStore) addItem(addItem itemAdded) (bool, error) {
 		return false, err
 	}
 
-	if events.quantityOfItem("add")
+	//if events.quantityOfItem(addItem.itemType)
 
 	events.itemAdded = append(events.itemAdded, addItem)
 	return true, err
@@ -212,35 +212,9 @@ func initEventStore() eventStore {
 
 func main() {
 
-	// a := []itemAdded{}
-
-	// p := pricesUpdated{map[string]float64{"trousers": 20.0, "shirts": 10.0}}
-
-	// i := itemAdded{"shirts", 1}
-
-	// b := itemAdded{"trousers", 1}
-
-	// // f := itemRemoved{"trousers", 1}
-
-	// // g := itemRemoved{"trousers", 1}
-
-	// a = append(a, i)
-
-	// //fmt.Println(a)
-
-	// events := eventStore{itemAdded: []itemAdded{}, itemRemoved: []itemRemoved{}}
-
-	// events.updatePrices(p)
-	// //fmt.Println(events.buildCart())
-	// events.addItem(i)
-	// events.addItem(b)
-	// // events.removeItem(f)
-	// // events.removeItem(g)
-	// fmt.Println(events.quantityOfItem("shirts"))
-	// //fmt.Println(events.buildCart())
-	// fmt.Println(events)
 	events := initEventStore()
 	fmt.Println(events.buildCart())
-	//fmt.Println(events.buildCart())
+	c := events.buildCart()
+	fmt.Println(c.CheckoutPrice())
 
 }
