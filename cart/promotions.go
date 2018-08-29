@@ -42,7 +42,8 @@ func Belt15PercentOffIf2OrMoreTrousers(cart Cart, total float64) float64 {
 			} else {
 				total = total + v.price*float64(v.quantity)
 			}
-		}
+		default
+	}
 }
 
 func Shoes15PercentOffIf2OrMoreTrousers(a, b int) int {
