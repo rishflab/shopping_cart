@@ -11,9 +11,14 @@ type Cart struct {
 	inventory *inventory.Inventory
 }
 
-func (cart *Cart) AddItem(name string, stock uint) error {
+/*
+called using HTTP PUT request
+url: /cart/{name}
+example body: {"quantity" : {quantity} }
+*/
+func (cart *Cart) AddItem(name string, quantity uint) error {
 
-	inventoryStock, err := cart.inventory.GetStock(name)
+	stock, err := cart.inventory.GetStock(name)
 
 	if err != nil {
 		return &itemNotFoundError{name}
@@ -25,7 +30,7 @@ func (cart *Cart) AddItem(name string, stock uint) error {
 		return &itemNotFoundError{name}
 	}
 
-	if stock+cartStock > inventoryStock {
+	if quantity+cartStock > stock {
 		return &itemNotFoundError{name}
 	}
 
@@ -34,6 +39,11 @@ func (cart *Cart) AddItem(name string, stock uint) error {
 	return nil
 }
 
+/*
+called using DELETE HTTP request
+url: /cart/{name}
+example body: {"quantity" : {quantity} }
+*/
 func (cart *Cart) RemoveItem(name string, quantity uint) error {
 
 	cartQuantity, some := cart.quantity[name]
@@ -64,9 +74,9 @@ func (cart *Cart) GetPrice(name string) (float64, error) {
 
 }
 
-func (cart *Cart) PriceAfterPromotions(promotions []Promotion) float64 {
+// func (cart *Cart) PriceAfterPromotions(promotions []Promotion) float64 {
 
-}
+// }
 
 type itemNotFoundError struct {
 	itemName string
