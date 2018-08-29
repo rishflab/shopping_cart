@@ -2,25 +2,26 @@ package inventory
 
 import "fmt"
 
-type inventory struct {
-	quantity map[string]uint
-	price    map[string]float64
+//Inventory of online story items
+type Inventory struct {
+	stock map[string]uint
+	price map[string]float64
 }
 
-func (inv *inventory) setPriceAndQuantity(name string, price float64, quantity uint) {
-	inv.quantity[name] = quantity
+func (inv *Inventory) SetPriceAndStock(name string, price float64, stock uint) {
+	inv.stock[name] = stock
 	inv.price[name] = price
 }
 
-func (inv *inventory) getQuantity(name string) (uint, error) {
-	quantity, some := inv.quantity[name]
+func (inv *Inventory) GetStock(name string) (uint, error) {
+	stock, some := inv.stock[name]
 	if some == true {
-		return quantity, nil
+		return stock, nil
 	}
 	return 0, &itemNotFoundError{name}
 }
 
-func (inv *inventory) getPrice(name string) (float64, error) {
+func (inv *Inventory) GetPrice(name string) (float64, error) {
 	price, some := inv.price[name]
 	if some == true {
 		return price, nil
