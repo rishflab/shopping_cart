@@ -1,61 +1,63 @@
 package cart
 
-type Promotion func(Cart, float64) float64
+type PromotionDiscount func(Cart) float64
 
-// type ActivePromotions struct {
-// 	promotions []Promotion(*Cart, uint)
-// }
+func ActivePromotions() []func(Cart) float64 {
 
-// func (active *ActivePromotions) AddPromotion(f func(*Cart, uint) uint) {
+	return[] func(Cart) float64 {
+		BeltAre15PercentOffIf2OrMoreTrousers,
+		ShirtsAre45DollarsIf2OrMoreShirts
+	}
+	
+}
 
-// 	active.promotions = append(active.promotions, f)
-
-// }
-
-// func (active *ActivePromotions) Init() {
-
-// 	active.AddPromotion(Belt15PercentOffIf2OrMoreTrousers func)
-
-// }
-
-func ApplyPromotions(cart Cart, promotions []func(Cart, float64) float64) float64 {
+func ApplyPromotions(cart Cart, promotions []func(Cart) float64) float64 {
 
 	total := PriceWithoutPromotions(cart)
+	discount := 0.0
 
 	for _, f := range promotions {
-		total -= f(cart, total)
+		discount += f(cart, total)
 	}
 
-	return total
+	return total - discount
 }
 
-func Belt15PercentOffIf2OrMoreTrousers(cart Cart, total float64) float64 {
-	
-	
-	for name, quantity := cart.quantity {
-		switch k {
+func BeltAre15PercentOffIf2OrMoreTrousers(cart Cart) float64 {
 
-		case "belts":
+	discount := 0.0
 
-			if cart.items["trousers"].quantity >= 2 {
-				total = total + v.price*0.85*float64(v.quantity)
-			} else {
-				total = total + v.price*float64(v.quantity)
-			}
-		default
+	quantity, some := cart.quantity["belts"]
+
+	if some != true {
+		return discount
 	}
+
+	beltPrice, _ := cart.GetPrice("belts")
+
+	discount = beltPrice * float64(quantity) * 0.15
+
+	return discount
+
 }
 
-func Shoes15PercentOffIf2OrMoreTrousers(a, b int) int {
-	return a + b
-}
+func ShirtsAre45DollarsIf2OrMoreShirts(cart Cart) float64 {
 
-func p3(a, b int) int {
-	return a - b
-}
+	discount := 0.0
 
-func p4(a, b int) int {
-	return a * b
+	quantity, some := cart.quantity["shirts"]
+
+	if some != true {
+		return discount
+	}
+
+	shirtPrice, _ := cart.GetPrice("shirts")
+
+	shirtDiscount := shirtPrice - 45.0
+
+	discount := float64(quantity-2) * shirtDiscount
+
+	return discount
 }
 
 func PriceWithoutPromotions(cart Cart) float64 {

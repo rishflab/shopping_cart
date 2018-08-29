@@ -74,9 +74,10 @@ func (cart *Cart) GetPrice(name string) (float64, error) {
 
 }
 
-// func (cart *Cart) PriceAfterPromotions(promotions []Promotion) float64 {
+func (cart *Cart) PriceAfterPromotions(promotions []Promotion) float64 {
+	total := PriceWithoutPromotions(cart)
 
-// }
+}
 
 type itemNotFoundError struct {
 	itemName string
