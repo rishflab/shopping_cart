@@ -1,11 +1,21 @@
 package inventory
 
-import "fmt"
+import (
+	"fmt"
+)
 
 //Inventory of online story items
 type Inventory struct {
 	stock map[string]uint
 	price map[string]float64
+}
+
+func StartingInventory() Inventory {
+	inv := Inventory{}
+	inv.SetPriceAndStock("shirts", 100, 12)
+	inv.SetPriceAndStock("belts", 50, 4)
+	inv.SetPriceAndStock("trousers", 150, 8)
+	return inv
 }
 
 func (inv *Inventory) SetPriceAndStock(name string, price float64, stock uint) {

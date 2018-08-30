@@ -11,6 +11,11 @@ type Cart struct {
 	inventory *inventory.Inventory
 }
 
+func NewCart(inv *inventory.Inventory) Cart {
+	var c = map[string]uint{}
+	return Cart{c, inv}
+}
+
 /*
 called using HTTP PUT request
 url: /cart/{name}
@@ -71,11 +76,6 @@ func (cart *Cart) GetPrice(name string) (float64, error) {
 	}
 
 	return price, nil
-
-}
-
-func (cart *Cart) PriceAfterPromotions(promotions []Promotion) float64 {
-	total := PriceWithoutPromotions(cart)
 
 }
 
